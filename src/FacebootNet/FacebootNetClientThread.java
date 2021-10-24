@@ -7,9 +7,14 @@ package FacebootNet;
 
 import FacebootNet.Engine.AbstractPacket;
 import FacebootNet.Engine.Opcodes;
-import FacebootNet.Engine.Packet;
+import FacebootNet.Engine.PacketBuffer;
 import FacebootNet.Packets.Client.CHelloPacket;
+import FacebootNet.Packets.Client.CLoginPacket;
+import FacebootNet.Packets.Server.EPostStruct;
+import FacebootNet.Packets.Server.SFetchPostsPacket;
 import FacebootNet.Packets.Server.SHelloPacket;
+import FacebootNet.Packets.Server.SLoginPacket;
+import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,7 +32,6 @@ public class FacebootNetClientThread extends Thread {
     private FacebootNetClient Client;
     private boolean IsRunning;
     private long TotalTicks;
-    private AtomicInteger RequestIdx;
 
     public FacebootNetClientThread(FacebootNetClient Client) {
         this.Client = Client;
@@ -35,18 +39,21 @@ public class FacebootNetClientThread extends Thread {
         this.ResponseQueue = new ConcurrentLinkedQueue<AbstractPacket>();
         this.ServerQueue = new ConcurrentLinkedQueue<AbstractPacket>();
         this.TotalTicks = 0L;
-        this.RequestIdx = new AtomicInteger(0);
     }
-
-    private int GetRequestIndex() {
-        return RequestIdx.addAndGet(1);
+    
+    public void Send(AbstractPacket Packet, int TimeoutMs){
+        RequestQueue.add(Packet);
+    }
+    
+    public void Send(AbstractPacket Packet){
+        Send(Packet, FacebootNet.Constants.NetTimeoutMs);
     }
 
     private void AttemptConnection() {
         // Crear el socket, etc.
         // ...
-        CHelloPacket packet = new CHelloPacket(GetRequestIndex());
-        packet.applicationVersion = Constants.applicationVersion;
+        CHelloPacket packet = new CHelloPacket(Client.GenerateRequestIndex());
+        packet.ApplicationVersion = Constants.ApplicationVersion;
         RequestQueue.add(packet);
     }
 
@@ -80,6 +87,9 @@ public class FacebootNetClientThread extends Thread {
                         Client.OnHelloMessage.Execute((SHelloPacket) packet);
                     }
             }
+            
+            if (Client.OnMessage != null)
+                Client.OnMessage.Execute(packet.Serialize());
         }
     }
 
@@ -97,12 +107,49 @@ public class FacebootNetClientThread extends Thread {
             switch (packet.GetOpcode()) {
                 case Opcodes.Hello:
                     // craft a hello response!
-                    SHelloPacket resp = new SHelloPacket(packet.GetRequestIndex());
-                    resp.ApplicationVersion = Constants.applicationVersion;
-                    resp.IsAuthServiceRunning = true;
-                    resp.IsChatMessageRunning = true;
-                    resp.IsPostServiceRunning = true;
-                    ResponseQueue.add(resp);
+                    SHelloPacket hello = new SHelloPacket(packet.GetRequestIndex());
+                    hello.ApplicationVersion = Constants.ApplicationVersion;
+                    hello.IsAuthServiceRunning = true;
+                    hello.IsChatMessageRunning = true;
+                    hello.IsPostServiceRunning = true;
+                    ResponseQueue.add(hello);
+                    break;
+                case Opcodes.Login:
+                    SLoginPacket login = new SLoginPacket(packet.GetRequestIndex());
+                    login.TokenId = "DEVTOKEN";
+                    login.ErrorCode = 0;
+                    login.UserBornDate = "2000-01-01";
+                    login.UserEmail = "test@gmail.com";
+                    login.UserGender = "male";
+                    login.UserName = "José Perez";
+                    login.UserId = 1;
+                    login.UserPhone = "0123456789";
+                    ResponseQueue.add(login);
+                    break;
+                case Opcodes.FetchPosts:
+                    SFetchPostsPacket posts = new SFetchPostsPacket(packet.GetRequestIndex());
+                    EPostStruct post1 = new EPostStruct();
+                    String lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc quam dolor, suscipit malesuada suscipit id, rhoncus a nunc. Curabitur nec nunc eget odio vehicula cursus. Duis at accumsan purus. Sed odio risus, ultrices eget nunc at, varius auctor nisi. Morbi sed posuere ipsum, id tempor neque. Morbi pretium ex risus, sed imperdiet eros rhoncus a. Nulla facilisi. Fusce tincidunt tortor ut est aliquet, ac mattis libero pharetra. Integer quis faucibus turpis, sit amet tincidunt eros.";
+                    post1.UserId = 1;
+                    post1.UserName = "ITSON";
+                    post1.PostBody = lorem;
+                    post1.PostTime = new Date().getTime();
+                    post1.TotalComments = 1;
+                    post1.TotalLikes = 5;
+                    post1.TotalReactions = 0;
+                    posts.AddPost(post1);
+                    
+                    EPostStruct post2 = new EPostStruct();
+                    post2.UserId = 2;
+                    post2.UserName = "José Pérez";
+                    post2.PostBody = "Prueba de publicación!!!";
+                    post2.PostTime = new Date().getTime();
+                    post2.TotalComments = 1;
+                    post2.TotalLikes = 1;
+                    post2.TotalReactions = 0;
+                    posts.AddPost(post2);
+                    ResponseQueue.add(posts);
+                    break;
             }
         }
     }

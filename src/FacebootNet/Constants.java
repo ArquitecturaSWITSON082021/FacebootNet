@@ -10,7 +10,8 @@ package FacebootNet;
  * @author Ivy
  */
 public class Constants {
-    public static final int applicationVersion = 1;
-    public static final short packetHeader = 9281;
-    public static final int packetLength = 1024 * 4;
+    public static final int ApplicationVersion = 1;
+    public static final short PacketHeader = 9281;
+    public static final int PacketLength = 1024 * 4;
+    public static final int NetTimeoutMs = 2000;
 }
