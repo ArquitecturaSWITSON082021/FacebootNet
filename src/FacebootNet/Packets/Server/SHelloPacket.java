@@ -5,9 +5,9 @@
  */
 package FacebootNet.Packets.Server;
 
-import FacebootNet.Packets.Client.*;
 import FacebootNet.Engine.AbstractPacket;
 import FacebootNet.Engine.Opcodes;
+import FacebootNet.Engine.PacketBuffer;
 
 /**
  * This packet is created from client to server for handshaking purposes.
@@ -24,8 +24,18 @@ public class SHelloPacket extends AbstractPacket {
         super(Opcodes.Hello, requestIdx);
     }
     
+    public static SHelloPacket Deserialize(byte[] data) throws Exception{
+        SHelloPacket p = new SHelloPacket(0);
+        PacketBuffer b = PacketBuffer.From(data);
+        p.ApplicationVersion = b.ReadInt();
+        p.IsAuthServiceRunning = b.ReadByte() == 1;
+        p.IsPostServiceRunning = b.ReadByte() == 1;
+        p.IsChatMessageRunning = b.ReadByte() == 1;
+        return p;
+    }
+    
     @Override
-    public byte[] Serialize(){
+    public byte[] Serialize() throws Exception{
         return CraftPacket()
                 .WriteInt(ApplicationVersion)
                 .WriteBoolean(IsAuthServiceRunning)
