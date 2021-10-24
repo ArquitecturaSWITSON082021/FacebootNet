@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package FacebootNet.Packets;
+package FacebootNet.Engine;
 
 /**
  *
  * @author Ivy
  */
 public class Opcodes {
-    public static final int HelloNfy = 1;
+    public static final int Hello = 1;
 }
