@@ -13,25 +13,28 @@ import FacebootNet.Engine.PacketBuffer;
  * This packet is created from client to server for handshaking purposes.
  * @author Ivy
  */
-public class CHelloPacket extends AbstractPacket {
+public class CLoginPacket extends AbstractPacket {
     
-    public int ApplicationVersion;
+    public String Email;
+    public String Password;
     
-    public CHelloPacket(int requestIdx){
-        super(Opcodes.Hello, requestIdx);
+    public CLoginPacket(int requestIdx){
+        super(Opcodes.Login, requestIdx);
     }
     
-    public static CHelloPacket Deserialize(byte[] data) throws Exception{
-        CHelloPacket p = new CHelloPacket(0);
+    public static CLoginPacket Deserialize(byte[] data) throws Exception{
+        CLoginPacket p = new CLoginPacket(0);
         PacketBuffer b = PacketBuffer.From(data);
-        p.ApplicationVersion = b.ReadInt();
+        p.Email = b.ReadString();
+        p.Password = b.ReadString();
         return p;
     }
     
     @Override
     public byte[] Serialize() throws Exception{
         return CraftPacket()
-                .WriteInt(ApplicationVersion)
+                .WriteString(Email)
+                .WriteString(Password)
                 .Serialize();
     }
     

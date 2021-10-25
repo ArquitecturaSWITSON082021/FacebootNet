@@ -22,8 +22,8 @@ public class AbstractPacket {
     }
     
     // Returns a Packet instance with the given opcode and request index.
-    protected Packet CraftPacket(){
-        Packet packet = new Packet(opcode, requestIdx);
+    protected PacketBuffer CraftPacket() throws Exception{
+        PacketBuffer packet = new PacketBuffer(opcode, requestIdx);
         return packet;
     }
     
@@ -36,10 +36,6 @@ public class AbstractPacket {
     }
     
     public byte[] Serialize() throws Exception{
-        throw new Exception("Not implemented yet.");
-    }
-    
-    public byte[] Deserialize() throws Exception{
         throw new Exception("Not implemented yet.");
     }
 }
