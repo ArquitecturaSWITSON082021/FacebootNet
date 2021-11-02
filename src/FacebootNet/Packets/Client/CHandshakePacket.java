@@ -13,16 +13,16 @@ import FacebootNet.Engine.PacketBuffer;
  * This packet is created from client to server for handshaking purposes.
  * @author Ivy
  */
-public class CHelloPacket extends AbstractPacket {
+public class CHandshakePacket extends AbstractPacket {
     
     public int ApplicationVersion;
     
-    public CHelloPacket(int requestIdx){
+    public CHandshakePacket(int requestIdx){
         super(Opcodes.Hello, requestIdx);
     }
     
-    public static CHelloPacket Deserialize(byte[] data) throws Exception{
-        CHelloPacket p = new CHelloPacket(0);
+    public static CHandshakePacket Deserialize(byte[] data) throws Exception{
+        CHandshakePacket p = new CHandshakePacket(0);
         PacketBuffer b = PacketBuffer.From(data);
         p.ApplicationVersion = b.ReadInt();
         return p;
