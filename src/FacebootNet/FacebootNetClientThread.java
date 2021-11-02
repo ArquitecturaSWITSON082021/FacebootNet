@@ -8,11 +8,11 @@ package FacebootNet;
 import FacebootNet.Engine.AbstractPacket;
 import FacebootNet.Engine.Opcodes;
 import FacebootNet.Engine.PacketBuffer;
-import FacebootNet.Packets.Client.CHelloPacket;
+import FacebootNet.Packets.Client.CHandshakePacket;
 import FacebootNet.Packets.Client.CLoginPacket;
 import FacebootNet.Packets.Server.EPostStruct;
 import FacebootNet.Packets.Server.SFetchPostsPacket;
-import FacebootNet.Packets.Server.SHelloPacket;
+import FacebootNet.Packets.Server.SHandshakePacket;
 import FacebootNet.Packets.Server.SLoginPacket;
 import java.util.Date;
 import java.util.Queue;
@@ -25,34 +25,61 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FacebootNetClientThread extends Thread {
 
+    // Define TS queues
     private Queue<AbstractPacket> RequestQueue;
     private Queue<AbstractPacket> ResponseQueue;
-    // REMOVE THIS WHEN SERVER IS DONE
+    
+    // SERVER EMULATION: REMOVE THIS WHEN SERVER IS DONE
     private Queue<AbstractPacket> ServerQueue;
+    // END SERVER EMULATION
+    
     private FacebootNetClient Client;
     private boolean IsRunning;
     private long TotalTicks;
-
+    
+    /**
+     * Creates a new FacebootNetThread.
+     * Requires a client object.
+     * @param Client 
+     */
     public FacebootNetClientThread(FacebootNetClient Client) {
         this.Client = Client;
+        
+        // Instantiate our own thread-safe queues.
         this.RequestQueue = new ConcurrentLinkedQueue<AbstractPacket>();
         this.ResponseQueue = new ConcurrentLinkedQueue<AbstractPacket>();
+        
+        // SERVER EMULATION: REMOVE THIS WHEN SERVER IS DONE
         this.ServerQueue = new ConcurrentLinkedQueue<AbstractPacket>();
+        // --
+        
         this.TotalTicks = 0L;
     }
     
+    /**
+     * Attempts to send a given packet to server.
+     * @param Packet
+     * @param TimeoutMs 
+     */
     public void Send(AbstractPacket Packet, int TimeoutMs){
         RequestQueue.add(Packet);
     }
     
+    /**
+     * Attempts to send a given packet to server.
+     * @param Packet 
+     */
     public void Send(AbstractPacket Packet){
         Send(Packet, FacebootNet.Constants.NetTimeoutMs);
     }
 
+    /**
+     * Attempts to connect with server, if possible.
+     */
     private void AttemptConnection() {
-        // Crear el socket, etc.
-        // ...
-        CHelloPacket packet = new CHelloPacket(Client.GenerateRequestIndex());
+        // ADD YOUR SOCKET CODE HERE
+        // --
+        CHandshakePacket packet = new CHandshakePacket(Client.GenerateRequestIndex());
         packet.ApplicationVersion = Constants.ApplicationVersion;
         RequestQueue.add(packet);
     }
@@ -84,7 +111,7 @@ public class FacebootNetClientThread extends Thread {
             switch (packet.GetOpcode()) {
                 case Opcodes.Hello:
                     if (Client.OnHelloMessage != null) {
-                        Client.OnHelloMessage.Execute((SHelloPacket) packet);
+                        Client.OnHelloMessage.Execute((SHandshakePacket) packet);
                     }
             }
             
@@ -94,7 +121,8 @@ public class FacebootNetClientThread extends Thread {
     }
 
     /**
-     * -- REMOVE THIS WHEN SERVER IS DONE Processes all server client requests
+     * -- REMOVE THIS WHEN SERVER IS DONE
+     * Processes all server client requests
      * queue.
      */
     private void ProcessServerQueue() {
@@ -107,7 +135,7 @@ public class FacebootNetClientThread extends Thread {
             switch (packet.GetOpcode()) {
                 case Opcodes.Hello:
                     // craft a hello response!
-                    SHelloPacket hello = new SHelloPacket(packet.GetRequestIndex());
+                    SHandshakePacket hello = new SHandshakePacket(packet.GetRequestIndex());
                     hello.ApplicationVersion = Constants.ApplicationVersion;
                     hello.IsAuthServiceRunning = true;
                     hello.IsChatMessageRunning = true;
@@ -160,14 +188,16 @@ public class FacebootNetClientThread extends Thread {
 
         while (IsRunning) {
             try {
-                // Si se acaba de correr el hilo, entonces crear el socket, etc...
+                // If is the first tick, attempt to connect
                 if (TotalTicks == 0) {
                     AttemptConnection();
                 }
-                // Loop principal de la biblioteca de red
                 ProcessRequestQueue();
+                
                 // REMOVE THIS WHEN SERVER IS DONE
                 ProcessServerQueue();
+                // --
+                
                 ProcessResponseQueue();
                 Thread.sleep(1);
                 TotalTicks++;

@@ -112,6 +112,17 @@ public class PacketBuffer {
         return this;
     }
     
+    // Writes a byte array buffer value into packet, based on the current index.
+    public PacketBuffer WriteBuffer(byte[] data) throws Exception{ 
+        WriteShort((short)data.length);
+        if (data.length >= 0){
+            for(byte d : data)
+                WriteByte(d);
+        }
+
+        return this;
+    }
+    
     // Writes a double value into packet, based on the current index.
     public PacketBuffer WriteDouble(double v) throws Exception{
         if (size != -1)
@@ -196,6 +207,12 @@ public class PacketBuffer {
         short len = ReadShort();
         String str = new String(ReadByteArray(len));
         return str;
+    }
+    
+    // Reads an string value from packet given the current index.
+    public byte[] ReadBuffer(){
+        short len = ReadShort();
+        return ReadByteArray(len);
     }
     
     // Reads an double value from packet given the current index.

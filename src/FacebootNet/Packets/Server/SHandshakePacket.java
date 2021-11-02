@@ -13,19 +13,19 @@ import FacebootNet.Engine.PacketBuffer;
  * This packet is created from client to server for handshaking purposes.
  * @author Ivy
  */
-public class SHelloPacket extends AbstractPacket {
+public class SHandshakePacket extends AbstractPacket {
     
     public int ApplicationVersion;
     public boolean IsAuthServiceRunning;
     public boolean IsPostServiceRunning;
     public boolean IsChatMessageRunning;
     
-    public SHelloPacket(int requestIdx){
+    public SHandshakePacket(int requestIdx){
         super(Opcodes.Hello, requestIdx);
     }
     
-    public static SHelloPacket Deserialize(byte[] data) throws Exception{
-        SHelloPacket p = new SHelloPacket(0);
+    public static SHandshakePacket Deserialize(byte[] data) throws Exception{
+        SHandshakePacket p = new SHandshakePacket(0);
         PacketBuffer b = PacketBuffer.From(data);
         p.ApplicationVersion = b.ReadInt();
         p.IsAuthServiceRunning = b.ReadByte() == 1;

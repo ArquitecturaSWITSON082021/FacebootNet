@@ -2,6 +2,13 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Server/SHandshakePacket.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Server/SLoginPacket.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Engine/Opcodes.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Client/CHandshakePacket.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Server/EPostStruct.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Client/CLoginPacket.java</file>
+        </group>
     </open-files>
 </project-private>
