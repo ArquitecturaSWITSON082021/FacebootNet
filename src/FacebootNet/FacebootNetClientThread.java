@@ -11,9 +11,12 @@ import FacebootNet.Engine.PacketBuffer;
 import FacebootNet.Packets.Client.CHandshakePacket;
 import FacebootNet.Packets.Client.CLoginPacket;
 import FacebootNet.Packets.Server.EPostStruct;
+import FacebootNet.Packets.Server.SConnectionErrorPacket;
 import FacebootNet.Packets.Server.SFetchPostsPacket;
 import FacebootNet.Packets.Server.SHandshakePacket;
 import FacebootNet.Packets.Server.SLoginPacket;
+import java.io.DataOutputStream;
+import java.net.Socket;
 import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -27,61 +30,90 @@ public class FacebootNetClientThread extends Thread {
 
     // Define TS queues
     private Queue<AbstractPacket> RequestQueue;
-    private Queue<AbstractPacket> ResponseQueue;
+    private FacebootNetClientListenerThread listenerThread;
     
-    // SERVER EMULATION: REMOVE THIS WHEN SERVER IS DONE
-    private Queue<AbstractPacket> ServerQueue;
-    // END SERVER EMULATION
     
+    private Socket socket;    
     private FacebootNetClient Client;
     private boolean IsRunning;
     private long TotalTicks;
-    
+
     /**
-     * Creates a new FacebootNetThread.
-     * Requires a client object.
-     * @param Client 
+     * Creates a new FacebootNetThread. Requires a client object.
+     *
+     * @param Client
      */
     public FacebootNetClientThread(FacebootNetClient Client) {
         this.Client = Client;
-        
+
         // Instantiate our own thread-safe queues.
         this.RequestQueue = new ConcurrentLinkedQueue<AbstractPacket>();
-        this.ResponseQueue = new ConcurrentLinkedQueue<AbstractPacket>();
-        
-        // SERVER EMULATION: REMOVE THIS WHEN SERVER IS DONE
-        this.ServerQueue = new ConcurrentLinkedQueue<AbstractPacket>();
-        // --
-        
+        this.listenerThread = new FacebootNetClientListenerThread(this);        
         this.TotalTicks = 0L;
     }
-    
+
     /**
      * Attempts to send a given packet to server.
+     *
      * @param Packet
-     * @param TimeoutMs 
+     * @param TimeoutMs
      */
-    public void Send(AbstractPacket Packet, int TimeoutMs){
+    public void Send(AbstractPacket Packet, int TimeoutMs) {
         RequestQueue.add(Packet);
     }
-    
+
     /**
      * Attempts to send a given packet to server.
-     * @param Packet 
+     *
+     * @param Packet
      */
-    public void Send(AbstractPacket Packet){
+    public void Send(AbstractPacket Packet) {
         Send(Packet, FacebootNet.Constants.NetTimeoutMs);
     }
 
     /**
      * Attempts to connect with server, if possible.
      */
-    private void AttemptConnection() {
-        // ADD YOUR SOCKET CODE HERE
-        // --
+    private boolean AttemptConnection() {
+        String host = "127.0.0.1";
+        int port = 4000;
+        
+        int totalAttempts = 3;
+        for (int i = 1; i <= totalAttempts; i++) {
+            System.out.printf("[*] FacebootNet Attempting connection on %s:%d...%d/%d\n", host, port, i, totalAttempts);
+            try {
+                socket = new Socket(host, port);
+                Thread.sleep(200L);
+                if (socket.isConnected())
+                    break;
+
+            } catch (Exception e) {
+                System.out.printf("[-] FacebootNet failed to connect to server: %s\n", e.getMessage());
+                socket = null;
+            }
+            
+            try {
+                Thread.sleep(300L);
+            } catch (Exception e) {
+            }
+        }
+        
+        if (!IsConnected())
+            return false;
+        
+        listenerThread.setSocket(socket);
+        listenerThread.start();
+        System.out.println("[+] Established connection to server successfully.\n");
+        
         CHandshakePacket packet = new CHandshakePacket(Client.GenerateRequestIndex());
         packet.ApplicationVersion = Constants.ApplicationVersion;
         RequestQueue.add(packet);
+        
+        return true;
+    }
+    
+    public boolean IsConnected() {
+        return socket != null && socket.isConnected() == true;
     }
 
     /**
@@ -89,122 +121,66 @@ public class FacebootNetClientThread extends Thread {
      */
     private void ProcessRequestQueue() {
         while (true) {
-            AbstractPacket packet = RequestQueue.poll();
-            if (packet == null) {
-                break;
+            try {
+                if (!IsConnected()) {
+                    continue;
+                }
+                DataOutputStream outstream = new DataOutputStream(socket.getOutputStream());
+                AbstractPacket packet = RequestQueue.poll();
+                if (packet == null) {
+                    break;
+                }
+                byte[] data = packet.Serialize();
+                outstream.write(data);
+            } catch (Exception e) {
+                System.out.printf("[-] Failed to process request queue: %s\n", e.getMessage());
+                e.printStackTrace();
             }
-            // REMOVE THIS WHEN SERVER IS DONE
-            ServerQueue.add(packet);
+            
         }
     }
 
     /**
      * Processes all client response queue.
      */
-    private void ProcessResponseQueue() throws Exception {
-        while (true) {
-            AbstractPacket packet = ResponseQueue.poll();
-            if (packet == null) {
-                break;
-            }
-
+    public void ProcessResponse(PacketBuffer packet) throws Exception {
             switch (packet.GetOpcode()) {
                 case Opcodes.Hello:
                     if (Client.OnHelloMessage != null) {
-                        Client.OnHelloMessage.Execute((SHandshakePacket) packet);
+                        Client.OnHelloMessage.Execute(SHandshakePacket.Deserialize(packet.Serialize()));
                     }
             }
             
-            if (Client.OnMessage != null)
+            if (Client.OnMessage != null) {
                 Client.OnMessage.Execute(packet.Serialize());
-        }
-    }
-
-    /**
-     * -- REMOVE THIS WHEN SERVER IS DONE
-     * Processes all server client requests
-     * queue.
-     */
-    private void ProcessServerQueue() {
-        while (true) {
-            AbstractPacket packet = ServerQueue.poll();
-            if (packet == null) {
-                break;
             }
-
-            switch (packet.GetOpcode()) {
-                case Opcodes.Hello:
-                    // craft a hello response!
-                    SHandshakePacket hello = new SHandshakePacket(packet.GetRequestIndex());
-                    hello.ApplicationVersion = Constants.ApplicationVersion;
-                    hello.IsAuthServiceRunning = true;
-                    hello.IsChatMessageRunning = true;
-                    hello.IsPostServiceRunning = true;
-                    ResponseQueue.add(hello);
-                    break;
-                case Opcodes.Login:
-                    SLoginPacket login = new SLoginPacket(packet.GetRequestIndex());
-                    login.TokenId = "DEVTOKEN";
-                    login.ErrorCode = 0;
-                    login.UserBornDate = "2000-01-01";
-                    login.UserEmail = "test@gmail.com";
-                    login.UserGender = "male";
-                    login.UserName = "José Perez";
-                    login.UserId = 1;
-                    login.UserPhone = "0123456789";
-                    ResponseQueue.add(login);
-                    break;
-                case Opcodes.FetchPosts:
-                    SFetchPostsPacket posts = new SFetchPostsPacket(packet.GetRequestIndex());
-                    EPostStruct post1 = new EPostStruct();
-                    String lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc quam dolor, suscipit malesuada suscipit id, rhoncus a nunc. Curabitur nec nunc eget odio vehicula cursus. Duis at accumsan purus. Sed odio risus, ultrices eget nunc at, varius auctor nisi. Morbi sed posuere ipsum, id tempor neque. Morbi pretium ex risus, sed imperdiet eros rhoncus a. Nulla facilisi. Fusce tincidunt tortor ut est aliquet, ac mattis libero pharetra. Integer quis faucibus turpis, sit amet tincidunt eros.";
-                    post1.UserId = 1;
-                    post1.UserName = "ITSON";
-                    post1.PostBody = lorem;
-                    post1.PostTime = new Date().getTime();
-                    post1.TotalComments = 1;
-                    post1.TotalLikes = 5;
-                    post1.TotalReactions = 0;
-                    posts.AddPost(post1);
-                    
-                    EPostStruct post2 = new EPostStruct();
-                    post2.UserId = 2;
-                    post2.UserName = "José Pérez";
-                    post2.PostBody = "Prueba de publicación!!!";
-                    post2.PostTime = new Date().getTime();
-                    post2.TotalComments = 1;
-                    post2.TotalLikes = 1;
-                    post2.TotalReactions = 0;
-                    posts.AddPost(post2);
-                    ResponseQueue.add(posts);
-                    break;
-            }
-        }
     }
-
+    
     @Override
     public void run() {
         this.IsRunning = true;
-
+        
         while (IsRunning) {
             try {
                 // If is the first tick, attempt to connect
                 if (TotalTicks == 0) {
-                    AttemptConnection();
+                    boolean result = AttemptConnection();
+                    // If we could not perform a successful connection, notify to client
+                    if (!result){
+                        SConnectionErrorPacket err = new SConnectionErrorPacket(Client.GenerateRequestIndex());
+                        err.ErrorCode = -1; // -1 = socket err
+                        err.Message = "Failed to connect to Faceboot TCP server. Make sure the server is either running and the endpoint is the right one.";
+                        if (Client.OnMessage != null)
+                            Client.OnMessage.Execute(err.Serialize());
+                    }
                 }
                 ProcessRequestQueue();
-                
-                // REMOVE THIS WHEN SERVER IS DONE
-                ProcessServerQueue();
-                // --
-                
-                ProcessResponseQueue();
-                Thread.sleep(1);
+                Thread.sleep(1L);
                 TotalTicks++;
             } catch (Exception e) {
                 System.out.println("FacebootNetClientThread.run() exception:\n" + e.getMessage() + "\n" + e.getStackTrace());
             }
         }
     }
-
+    
 }

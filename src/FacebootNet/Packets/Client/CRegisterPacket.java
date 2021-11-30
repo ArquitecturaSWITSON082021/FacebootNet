@@ -16,6 +16,7 @@ import FacebootNet.Engine.PacketBuffer;
 public class CRegisterPacket extends AbstractPacket {
     
     public String UserName;
+    public String LastName;
     public String Email;
     public String Password;
     public String Phone;
@@ -30,6 +31,7 @@ public class CRegisterPacket extends AbstractPacket {
         CRegisterPacket p = new CRegisterPacket(0);
         PacketBuffer b = PacketBuffer.From(data);
         p.UserName = b.ReadString();
+        p.LastName = b.ReadString();
         p.Email = b.ReadString();
         p.Password = b.ReadString();
         p.Phone = b.ReadString();
@@ -42,6 +44,7 @@ public class CRegisterPacket extends AbstractPacket {
     public byte[] Serialize() throws Exception{
         return CraftPacket()
                 .WriteString(UserName)
+                .WriteString(LastName)
                 .WriteString(Email)
                 .WriteString(Password)
                 .WriteString(Phone)

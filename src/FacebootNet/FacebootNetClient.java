@@ -109,14 +109,15 @@ public class FacebootNetClient {
      * @param Gender
      * @param BornDate 
      */
-    public void DoRegister(String UserName, String Email, String Password, String Phone, String Gender, String BornDate){
+    public void DoRegister(String UserName, String LastName, String Email, String Password, String Phone, String Gender, String BornDate){
         CRegisterPacket request = new CRegisterPacket(GenerateRequestIndex());
         request.UserName = UserName;
+        request.LastName = LastName;
         request.Email = Email;
         request.Password = Password;
         request.Phone = Phone;
         request.Gender = Gender;
-        request.Gender = Gender;
+        request.BornDate = BornDate;
         NetThread.Send(request);
     }
     
