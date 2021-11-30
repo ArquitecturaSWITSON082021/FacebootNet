@@ -16,6 +16,7 @@ import FacebootNet.Engine.PacketBuffer;
 public class CDoPostPacket extends AbstractPacket {
     
     public String Contents;
+    public String Filename;
     public byte[] Picture;
     
     public CDoPostPacket(int requestIdx){
@@ -26,6 +27,7 @@ public class CDoPostPacket extends AbstractPacket {
         CDoPostPacket p = new CDoPostPacket(0);
         PacketBuffer b = PacketBuffer.From(data);
         p.Contents = b.ReadString();
+        p.Filename = b.ReadString();
         p.Picture = b.ReadBuffer();
         return p;
     }
@@ -34,6 +36,7 @@ public class CDoPostPacket extends AbstractPacket {
     public byte[] Serialize() throws Exception{
         return CraftPacket()
                 .WriteString(Contents)
+                .WriteString(Filename)
                 .WriteBuffer(Picture)
                 .Serialize();
     }

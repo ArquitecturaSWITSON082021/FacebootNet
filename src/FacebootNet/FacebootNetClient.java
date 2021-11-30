@@ -109,14 +109,15 @@ public class FacebootNetClient {
      * @param Gender
      * @param BornDate 
      */
-    public void DoRegister(String UserName, String Email, String Password, String Phone, String Gender, String BornDate){
+    public void DoRegister(String UserName, String LastName, String Email, String Password, String Phone, String Gender, String BornDate){
         CRegisterPacket request = new CRegisterPacket(GenerateRequestIndex());
         request.UserName = UserName;
+        request.LastName = LastName;
         request.Email = Email;
         request.Password = Password;
         request.Phone = Phone;
         request.Gender = Gender;
-        request.Gender = Gender;
+        request.BornDate = BornDate;
         NetThread.Send(request);
     }
     
@@ -152,9 +153,10 @@ public class FacebootNetClient {
      * @param Picture 
      * @throws Exception
      */
-    public void DoPost(String Contents, byte[] Picture) throws Exception{
+    public void DoPost(String Contents, String Filename, byte[] Picture) throws Exception{
         CDoPostPacket request = new CDoPostPacket(GenerateRequestIndex());
         request.Contents = Contents;
+        request.Filename = Filename;
         request.Picture = Picture;
         
         if (request.Contents.length() > 250)

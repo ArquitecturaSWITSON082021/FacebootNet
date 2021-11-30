@@ -5,34 +5,28 @@
  */
 package FacebootNet.Packets.Server;
 
-import FacebootNet.Packets.Client.*;
 import FacebootNet.Engine.AbstractPacket;
 import FacebootNet.Engine.Opcodes;
 import FacebootNet.Engine.PacketBuffer;
 
 /**
- * This packet is created from client to server for handshaking purposes.
+ * This packet is created from client to client stating connection errors, this packet is not actually sent by server.
  * @author Ivy
  */
-public class SRegisterPacket extends AbstractPacket {
+public class SConnectionErrorPacket extends AbstractPacket {
     
     public int ErrorCode;
-    public int UserId;
-    public String UserName;
+    public String Message;
     
-    public SRegisterPacket(int requestIdx){
-        super(Opcodes.DoRegister, requestIdx);
-        ErrorCode = 0;
-        UserId = 0;
-        UserName = "";
+    public SConnectionErrorPacket(int requestIdx){
+        super(Opcodes.SocketError, requestIdx);
     }
     
-    public static SRegisterPacket Deserialize(byte[] data) throws Exception {
-        SRegisterPacket p = new SRegisterPacket(0);
+    public static SConnectionErrorPacket Deserialize(byte[] data) throws Exception{
+        SConnectionErrorPacket p = new SConnectionErrorPacket(0);
         PacketBuffer b = PacketBuffer.From(data);
         p.ErrorCode = b.ReadInt();
-        p.UserId = b.ReadInt();
-        p.UserName = b.ReadString();
+        p.Message = b.ReadString();
         return p;
     }
     
@@ -40,8 +34,7 @@ public class SRegisterPacket extends AbstractPacket {
     public byte[] Serialize() throws Exception{
         return CraftPacket()
                 .WriteInt(ErrorCode)
-                .WriteInt(UserId)
-                .WriteString(UserName)
+                .WriteString(Message)
                 .Serialize();
     }
     

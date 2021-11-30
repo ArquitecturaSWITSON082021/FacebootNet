@@ -50,7 +50,8 @@ public class SFetchPostsPacket extends AbstractPacket {
         
         b.WriteInt(Posts.size());
         for(EPostStruct post : Posts){
-            b.Write(post.Serialize());
+            byte[] postBytes = post.Serialize();
+            b.Write(postBytes, postBytes.length);
         }
         
         return b.Serialize();

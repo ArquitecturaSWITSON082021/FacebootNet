@@ -45,7 +45,9 @@ public class PacketBuffer {
             throw new Exception("Invalid packet size. Got: " + size);
             
             // sum size with header
-            size += 2 + 4 + 4 + 2;
+            size += 2 + 4; // + 4 + 2;
+        }else{
+            throw new Exception("Invalid packet header. Expecting: " + Constants.PacketHeader + ", expecting: " + header);
         }
     }
     
@@ -59,7 +61,27 @@ public class PacketBuffer {
         WriteShort((short) opcode); // packet opcode
         this.opcode = opcode;
     }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public int getRequestIdx() {
+        return requestIdx;
+    }
+
+    public int getIdx() {
+        return idx;
+    }
     
+    public void setIdx(int idx) {
+        this.idx = idx;
+    }
+
     // Attempts to deserialize a given byte array packet and returns a Packet object
     // as a result. If fails, an Exception may be thrown.
     public static PacketBuffer From(byte[] data) throws Exception{
@@ -103,7 +125,7 @@ public class PacketBuffer {
             throw new Exception("Cannot attempt to Write on packet if size is provided.");
         
         byte[] data = v.getBytes();
-        WriteShort((short)data.length);
+        WriteInt(data.length);
         if (data.length >= 0){
             for(byte d : data)
                 WriteByte(d);
@@ -114,7 +136,7 @@ public class PacketBuffer {
     
     // Writes a byte array buffer value into packet, based on the current index.
     public PacketBuffer WriteBuffer(byte[] data) throws Exception{ 
-        WriteShort((short)data.length);
+        WriteInt(data.length);
         if (data.length >= 0){
             for(byte d : data)
                 WriteByte(d);
@@ -184,11 +206,11 @@ public class PacketBuffer {
     }
     
     // Writes a byte array into packet, based on the current index.
-    public PacketBuffer Write(byte[] v) throws Exception{
-        if (size != -1)
-            throw new Exception("Cannot attempt to Write on packet if size is provided.");
+    public PacketBuffer Write(byte[] v, int len){
+        /* if (size != -1)
+            throw new Exception("Cannot attempt to Write on packet if size is provided."); */
         
-        for(int i = 0; i < v.length; i++){
+        for(int i = 0; i < len; i++){
             b.put(idx, v[i]);
             idx++;
         }
@@ -204,14 +226,14 @@ public class PacketBuffer {
     
     // Reads an string value from packet given the current index.
     public String ReadString(){
-        short len = ReadShort();
+        int len = ReadInt();
         String str = new String(ReadByteArray(len));
         return str;
     }
     
     // Reads an string value from packet given the current index.
     public byte[] ReadBuffer(){
-        short len = ReadShort();
+        int len = ReadInt();
         return ReadByteArray(len);
     }
     

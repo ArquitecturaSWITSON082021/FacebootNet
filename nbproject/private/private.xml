@@ -3,12 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Server/SHandshakePacket.java</file>
-            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Server/SLoginPacket.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Client/CDoPostPacket.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Engine/ErrorCode.java</file>
             <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Engine/Opcodes.java</file>
-            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Client/CHandshakePacket.java</file>
-            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Server/EPostStruct.java</file>
-            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Client/CLoginPacket.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/FacebootNetClient.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Packets/Server/SFetchPostsPacket.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Constants.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/Engine/PacketBuffer.java</file>
+            <file>file:/C:/Users/Ivy/Documents/NetBeansProjects/FacebootNet/src/FacebootNet/FacebootNetClientThread.java</file>
         </group>
     </open-files>
 </project-private>

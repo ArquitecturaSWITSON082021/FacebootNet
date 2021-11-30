@@ -21,6 +21,7 @@ public class EPostStruct {
     public int TotalReactions;
     public int TotalLikes;
     public int TotalComments;
+    public boolean HasAttachment;
 
     public static EPostStruct From(PacketBuffer packet) throws Exception {
         EPostStruct post = new EPostStruct();
@@ -32,20 +33,22 @@ public class EPostStruct {
         post.TotalReactions = packet.ReadInt();
         post.TotalLikes = packet.ReadInt();
         post.TotalComments = packet.ReadInt();
+        post.HasAttachment = packet.ReadByte() == 1;
         return post;
     }
 
     public byte[] Serialize() throws Exception {
         PacketBuffer b = new PacketBuffer();
-        b.WriteInt(PostId)
+        return b.WriteInt(PostId)
                 .WriteLong(PostTime)
                 .WriteInt(UserId)
                 .WriteString(UserName)
                 .WriteString(PostBody)
                 .WriteInt(TotalReactions)
                 .WriteInt(TotalLikes)
-                .WriteInt(TotalComments);
-        return b.Serialize();
+                .WriteInt(TotalComments)
+                .WriteByte((byte) (HasAttachment == true ? 1 : 0))
+                .Serialize();
     }
 
 }
