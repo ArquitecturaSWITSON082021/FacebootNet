@@ -77,6 +77,10 @@ public class PacketBuffer {
     public int getIdx() {
         return idx;
     }
+    
+    public void setIdx(int idx) {
+        this.idx = idx;
+    }
 
     // Attempts to deserialize a given byte array packet and returns a Packet object
     // as a result. If fails, an Exception may be thrown.
@@ -121,7 +125,7 @@ public class PacketBuffer {
             throw new Exception("Cannot attempt to Write on packet if size is provided.");
         
         byte[] data = v.getBytes();
-        WriteShort((short)data.length);
+        WriteInt(data.length);
         if (data.length >= 0){
             for(byte d : data)
                 WriteByte(d);
@@ -132,7 +136,7 @@ public class PacketBuffer {
     
     // Writes a byte array buffer value into packet, based on the current index.
     public PacketBuffer WriteBuffer(byte[] data) throws Exception{ 
-        WriteShort((short)data.length);
+        WriteInt(data.length);
         if (data.length >= 0){
             for(byte d : data)
                 WriteByte(d);
@@ -222,14 +226,14 @@ public class PacketBuffer {
     
     // Reads an string value from packet given the current index.
     public String ReadString(){
-        short len = ReadShort();
+        int len = ReadInt();
         String str = new String(ReadByteArray(len));
         return str;
     }
     
     // Reads an string value from packet given the current index.
     public byte[] ReadBuffer(){
-        short len = ReadShort();
+        int len = ReadInt();
         return ReadByteArray(len);
     }
     

@@ -16,6 +16,7 @@ public class ErrorCode {
     public static final int InternalServerError = -2;
     public static final int InvalidCredentials = 1;
     public static final int UserIllegalAge = 2;
+    public static final int AccessDenied = 3;
     
     public static String Format(int ErrorCode){
         switch (ErrorCode){
@@ -31,6 +32,8 @@ public class ErrorCode {
                 return "Las credenciales proporcionadas son inválidas.";
             case UserIllegalAge:
                 return "La edad del usuario es inválida, debe ser mayor de 18 años para hacer uso de Faceboot.";
+            case AccessDenied:
+                return "No tiene permisos suficientes para realizar esta acción.";
         }
         
         return String.format("Invalid error code given: %d.", ErrorCode);

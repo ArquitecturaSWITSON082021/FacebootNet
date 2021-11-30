@@ -153,9 +153,10 @@ public class FacebootNetClient {
      * @param Picture 
      * @throws Exception
      */
-    public void DoPost(String Contents, byte[] Picture) throws Exception{
+    public void DoPost(String Contents, String Filename, byte[] Picture) throws Exception{
         CDoPostPacket request = new CDoPostPacket(GenerateRequestIndex());
         request.Contents = Contents;
+        request.Filename = Filename;
         request.Picture = Picture;
         
         if (request.Contents.length() > 250)
