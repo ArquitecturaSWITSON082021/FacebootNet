@@ -17,6 +17,7 @@ import FacebootNet.Packets.Server.SHandshakePacket;
 import FacebootNet.Packets.Server.SLoginPacket;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -131,7 +132,21 @@ public class FacebootNetClientThread extends Thread {
                     break;
                 }
                 byte[] data = packet.Serialize();
-                outstream.write(data);
+                int dwLen = data.length;
+                // Calculate required frames for this given packet
+                int totalFrames = Math.round(data.length / Constants.FrameLength) + 1;
+                for(int i = 0; i < totalFrames; i++){
+                    int startOffset = i * Constants.FrameLength;
+                    int endOffset = (i + 1) * Constants.FrameLength;
+                    if (endOffset > dwLen){
+                        endOffset = dwLen;
+                    }
+                    byte[] frame = Arrays.copyOfRange(data, startOffset, endOffset);
+                    if (frame.length <= 0)
+                        break;
+                    outstream.write(frame);
+                }
+                
             } catch (Exception e) {
                 System.out.printf("[-] Failed to process request queue: %s\n", e.getMessage());
                 e.printStackTrace();
