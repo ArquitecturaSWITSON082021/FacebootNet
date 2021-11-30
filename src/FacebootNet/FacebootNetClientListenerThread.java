@@ -6,6 +6,7 @@
 package FacebootNet;
 
 import FacebootNet.Engine.PacketBuffer;
+import FacebootNet.Packets.Server.SConnectionErrorPacket;
 import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
@@ -18,86 +19,95 @@ import java.util.logging.Logger;
  * @author Ivy
  */
 public class FacebootNetClientListenerThread extends Thread {
-    
+
     private Socket socket;
     private boolean isRunning;
     private PacketBuffer packet;
     private int packetSize;
-    private FacebootNetClientThread client;
-    
-    public FacebootNetClientListenerThread(FacebootNetClientThread c){
-        client = c;
+    private FacebootNetClientThread clientThread;
+
+    public FacebootNetClientListenerThread(FacebootNetClientThread c) {
+        clientThread = c;
     }
-    
-    public void setSocket(Socket s){
+
+    public void setSocket(Socket s) {
         this.socket = s;
         this.packetSize = 0;
     }
-    
-    public boolean IsRunning(){
+
+    public boolean IsRunning() {
         return isRunning == true;
     }
-    
+
     @Override
-    public void run(){
-        if (IsRunning())
+    public void run() {
+        if (IsRunning()) {
             return;
-        
+        }
+
         isRunning = true;
         BufferedInputStream instream = null;
         DataOutputStream outstream = null;
-        try{
+        try {
             instream = new BufferedInputStream(socket.getInputStream());
-        }catch(Exception e){}
+        } catch (Exception e) {
+        }
         byte[] buff = new byte[1024];
-        while(isRunning){
+        while (isRunning) {
             try {
-                Arrays.fill(buff, (byte)0);
+                Arrays.fill(buff, (byte) 0);
                 int dwBytesRead = instream.read(buff, 0, buff.length); // instream.read(buff, 0, buff.length);
-                if (dwBytesRead <= 0)
+                if (dwBytesRead <= 0) {
                     continue;
-                
+                }
+
                 packetSize += dwBytesRead;
-                
-                if (packet == null){
+
+                if (packet == null) {
                     packet = new PacketBuffer(buff);
-                }else{
+                } else {
                     packet.Write(buff, dwBytesRead);
                 }
-                
-                if (packet != null && packetSize == packet.getSize()){
-                        // execute packet
-                        client.ProcessResponse(packet);
-                        packet = null;
-                        packetSize = 0;
-                    }
-                
-                
+
+                if (packet != null && packetSize == packet.getSize()) {
+                    // execute packet
+                    clientThread.ProcessResponse(packet);
+                    packet = null;
+                    packetSize = 0;
+                }
+
                 /*System.arraycopy(tempBuffer, 0, packetBuffer, currentOffset, dwBytesRead);
                 currentOffset += dwBytesRead;
                 System.out.println(packetBuffer); */
-                
             } catch (Exception ex) {
                 Logger.getLogger(FacebootNetClientListenerThread.class.getName()).log(Level.SEVERE, null, ex);
                 this.kill();
             }
-            
-            
+
         }
     }
-    
-    public void kill(){
+
+    public void kill() {
         try {
-            if (!IsRunning())
+            if (!IsRunning()) {
                 return;
-            
+            }
+
             isRunning = false;
             Thread.sleep(1000L);
         } catch (InterruptedException ex) {
             Logger.getLogger(FacebootNetClientListenerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        SConnectionErrorPacket err = new SConnectionErrorPacket(clientThread.Client.GenerateRequestIndex());
+        err.ErrorCode = -1; // -1 = socket err
+        err.Message = "Lost connection to Faceboot server.";
+        try {
+            if (clientThread.Client.OnMessage != null) {
+                clientThread.Client.OnMessage.Execute(err.Serialize());
+            }
+        } catch (Exception e) {
+        }
     }
-    
-    
-    
+
 }

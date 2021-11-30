@@ -29,12 +29,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FacebootNetClientThread extends Thread {
 
     // Define TS queues
+    public FacebootNetClient Client;
     private Queue<AbstractPacket> RequestQueue;
     private FacebootNetClientListenerThread listenerThread;
     
     
     private Socket socket;    
-    private FacebootNetClient Client;
     private boolean IsRunning;
     private long TotalTicks;
 
