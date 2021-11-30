@@ -7,6 +7,7 @@ package FacebootNet.Packets.Server;
 
 import FacebootNet.Packets.Client.*;
 import FacebootNet.Engine.AbstractPacket;
+import FacebootNet.Engine.ErrorCode;
 import FacebootNet.Engine.Opcodes;
 import FacebootNet.Engine.PacketBuffer;
 
