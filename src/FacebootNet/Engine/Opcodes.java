@@ -18,5 +18,8 @@ public class Opcodes {
     public static final int DoComment = 6;
     public static final int DoRegister = 7;
     public static final int FetchConfig = 8;
+    public static final int AttemptOauth = 9;
+    public static final int RegisterOauth = 10;
+    public static final int LoginOauth = 11;
     public static final int SocketError = 9000;
 }

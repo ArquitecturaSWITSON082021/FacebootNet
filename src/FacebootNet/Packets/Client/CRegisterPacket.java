@@ -8,6 +8,7 @@ package FacebootNet.Packets.Client;
 import FacebootNet.Engine.AbstractPacket;
 import FacebootNet.Engine.Opcodes;
 import FacebootNet.Engine.PacketBuffer;
+import FacebootNet.Packets.Server.SOauthPacket;
 
 /**
  * This packet is created from client to server for handshaking purposes.
@@ -22,6 +23,7 @@ public class CRegisterPacket extends AbstractPacket {
     public String Phone;
     public String Gender;
     public String BornDate;
+    public SOauthPacket Oauth;
     
     public CRegisterPacket(int requestIdx){
         super(Opcodes.DoRegister, requestIdx);
@@ -37,11 +39,14 @@ public class CRegisterPacket extends AbstractPacket {
         p.Phone = b.ReadString();
         p.Gender = b.ReadString();
         p.BornDate = b.ReadString();
+        byte [] OauthBuf = b.ReadBuffer();
+        p.Oauth = OauthBuf.length > 0 ? SOauthPacket.Deserialize(OauthBuf) : null;
         return p;
     }
     
     @Override
     public byte[] Serialize() throws Exception{
+        byte[] OauthBuf = Oauth == null ? new byte[0] : Oauth.Serialize();
         return CraftPacket()
                 .WriteString(UserName)
                 .WriteString(LastName)
@@ -50,6 +55,7 @@ public class CRegisterPacket extends AbstractPacket {
                 .WriteString(Phone)
                 .WriteString(Gender)
                 .WriteString(BornDate)
+                .WriteBuffer(OauthBuf)
                 .Serialize();
     }
     

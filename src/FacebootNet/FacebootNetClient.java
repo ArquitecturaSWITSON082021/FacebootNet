@@ -6,6 +6,7 @@
 package FacebootNet;
 
 import FacebootNet.Engine.AbstractPacket;
+import FacebootNet.Packets.Client.CAttemptOauthPacket;
 import FacebootNet.Packets.Client.CDoPostPacket;
 import FacebootNet.Packets.Client.CFetchPostsPacket;
 import FacebootNet.Packets.Client.CLoginPacket;
@@ -14,6 +15,7 @@ import FacebootNet.Packets.Client.CValidateTokenPacket;
 import FacebootNet.Packets.Client.CDoCommentPacket;
 import FacebootNet.Packets.Client.CFetchConfigPacket;
 import FacebootNet.Packets.Server.SHandshakePacket;
+import FacebootNet.Packets.Server.SOauthPacket;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -109,7 +111,7 @@ public class FacebootNetClient {
      * @param Gender
      * @param BornDate 
      */
-    public void DoRegister(String UserName, String LastName, String Email, String Password, String Phone, String Gender, String BornDate){
+    public void DoRegister(String UserName, String LastName, String Email, String Password, String Phone, String Gender, String BornDate, SOauthPacket Oauth){
         CRegisterPacket request = new CRegisterPacket(GenerateRequestIndex());
         request.UserName = UserName;
         request.LastName = LastName;
@@ -118,6 +120,7 @@ public class FacebootNetClient {
         request.Phone = Phone;
         request.Gender = Gender;
         request.BornDate = BornDate;
+        request.Oauth = Oauth;
         NetThread.Send(request);
     }
     
@@ -188,6 +191,12 @@ public class FacebootNetClient {
      */
     public void DoFetchConfig(){
         CFetchConfigPacket request = new CFetchConfigPacket(GenerateRequestIndex());
+        NetThread.Send(request);
+    }
+    
+    public void DoAttemptOauth(int oAuthType){
+        CAttemptOauthPacket request = new CAttemptOauthPacket(GenerateRequestIndex());
+        request.OauthType = oAuthType;
         NetThread.Send(request);
     }
     
